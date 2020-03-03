@@ -6,6 +6,21 @@ class TC < Test::Unit::TestCase
     @o = Identy.new
   end
 
+  def test_main
+    @oo = Identy.new("/Users/shouichi/ruby/src/identy/DicomFiles/DICOM/")
+    assert_equal([["DATA", nil, nil, nil],
+      ["DATA", nil, nil, nil],
+      ["DATA", nil, nil, nil],
+      ["DATA",
+       "USS-V2.5-171117-01 SPL.IMAGE LN^FOR USS44G  FN^MI",
+       "USS56-V2.5SP0001-SPL.IMAGE",
+       "20171208"],
+      ["DATA",
+       "USS-V2.5-171117-01 SPL.IMAGE LN^FOR USS44G  FN^MI",
+       "USS56-V2.5SP0001-SPL.IMAGE",
+       "20171208"]], @o.main)
+  end
+
   def test_dcm_dirs
     @o.dbg_chdir("/Users/shouichi/ruby/src/identy/DicomFiles/DICOM/")
     assert_equal([["DATA", nil, nil, nil],
@@ -94,8 +109,16 @@ class TC < Test::Unit::TestCase
       ["DICOM", "EM", "Z1", "20170316"]], @o.dcm_dirs)
   end
 
+  def test_convert_cvs
+    assert_equal( [["DICOM", "EM", "Z1", "20170316"]], @o.convert_cvs([["DICOM", "EM", "Z1", "20170316"],["DICOM", nil, nil, nil],["DICOM", "EM", "Z1", "20170316"],["DICOM", nil, nil, nil]]))
+  end
+
   def test_idx
     assert_equal("foo", @o.idx("foo/bar/fofofo.txt"))
+  end
+
+  def test_gather_nil
+    assert_equal( [["DICOM", nil, nil, nil]], @o.gather_nil([["DICOM", "EM", "Z1", "20170316"],["DICOM", nil, nil, nil]]))
   end
 
 end
