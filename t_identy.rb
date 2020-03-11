@@ -110,7 +110,7 @@ class TC < Test::Unit::TestCase
   end
 
   def test_convert_cvs
-    assert_equal( [["DICOM", "EM", "Z1", "20170316"]], @o.convert_cvs([["DICOM", "EM", "Z1", "20170316"],["DICOM", nil, nil, nil],["DICOM", "EM", "Z1", "20170316"],["DICOM", nil, nil, nil]]))
+    assert_equal( ["DICOM,EM,Z1,20170316","1,2,3,4"], @o.convert_cvs([["DICOM", "EM", "Z1", "20170316"],["DICOM", nil, nil, nil],["DICOM", "EM", "Z1", "20170316"],["DICOM", nil, nil, nil],["1","2","3","4"]]))
   end
 
   def test_idx
@@ -119,6 +119,10 @@ class TC < Test::Unit::TestCase
 
   def test_gather_nil
     assert_equal( [["DICOM", nil, nil, nil]], @o.gather_nil([["DICOM", "EM", "Z1", "20170316"],["DICOM", nil, nil, nil]]))
+  end
+
+  def test_write_cvs
+    assert_equal(nil, @o.write_cvs(["1,2,3,4","9,9,9,9"]))
   end
 
 end

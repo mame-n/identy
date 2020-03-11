@@ -11,10 +11,11 @@ class Identy
 
   def main
     keep_dir = Dir.pwd
+    @out_file = keep_dir+ARGV[2]
     Dir.chdir(@dcm_path)
     ret = dcm_dirs
+    write_cvs(convert_cvs( ret ))
     Dir.chdir(keep_dir)
-    puts convert_cvs( ret )
   end
 
   def dcm_dirs
@@ -32,25 +33,29 @@ class Identy
     d_dir.split("/")[0]
   end
 
-  def convert_cvs(dcm_result)
-    dcm_result.uniq!
-    dcm_result -= gather_nil(dcm_result)
-    dcm_result.inject("") do |result_text, info|
-      info.each do |d|
-        result_text += (d + ",")
+  def convert_cvs(dcm_results)
+    dcm_results.uniq!
+    puts "Before #{dcm_results}"
+    dcm_results.inject([]) do |result_text, dcm_result|
+      puts "result_text = #{result_text} : #{dcm_result}"
+      if dcm_result[1] == nil  # PID is nil , so this file is not DICOM.
+        result_text
+      else
+        result_text << change_string(dcm_result)
       end
-      result_text += "\n"
     end
+  end
+
+  def change_string(dcm_result)
+    dcm_result.inject("") do |gather_text, d|
+      gather_text + (d + ",")
+    end.delete_suffix(",")
   end
 
   def gather_nil(targets)
     targets.inject([]) do |gathered, target|
-      if target[1] == nil 
-        gathered << target # if PID == nil, this file is not DICOM.
-      else
-        gathered = []
-      end
-
+      next if target[1] == nil # if PID == nil, this file is not DICOM.
+      gathered << target 
     end
   end
 
@@ -58,6 +63,13 @@ class Identy
     Dir.chdir(dpath)
   end
 
+  def write_cvs( values )
+    File.open(@out_file, "w") do |fp|
+      values.each do |value|
+        fp.puts(value)
+      end
+    end
+  end
 end
 
 if $0 == __FILE__
