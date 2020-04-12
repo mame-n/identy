@@ -1,6 +1,4 @@
-require 'dicom'
-
-include DICOM
+require "./patient_name_id"
 
 class Identy
   def initialize(dcm_path="./DicomFiles")
@@ -21,8 +19,8 @@ class Identy
   def dcm_dirs
     Dir.glob("**/*").map do |file_path|
       unless File.directory?(file_path)
-        dcm = DObject.read("./" + file_path)
-        [idx(file_path), dcm.value("0010,0010"), dcm.value("0010,0020"), dcm.value("0008,0020")]
+        dcm = PatirntNameID.new("./" + file_path)
+        [idx(file_path), dcm[:pname], dcm[:pid], dcm[:study_date]]
       else
         [idx(file_path),nil,nil,nil]
       end
