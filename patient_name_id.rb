@@ -17,15 +17,14 @@ class PatientNameID
       allget = 3
       while allget > 0 && (data = fp.read(6)) != nil # Tag1, Tag2, VR, size
         header = data.unpack("S2A2")
-        break if body_size( fp, header ) == 0
-
-#        begin
-          body = fp.read( body_size( fp, header ) )
-#        rescue
-#          break
-#        end
-
-#        puts "header #{header} body #{body}"
+#        printf "allget %d, header [%04x, %04x, \"%s\"] ", allget, header[0], header[1], header[2]
+        body_size = body_size( fp, header )
+        if body_size == -1
+#          puts "Break"
+          break
+        end
+        body = fp.read( body_size )
+#        printf " body %s\n", body
         if header[0] == 0x0010 && header[1] == 0x0010 # Patient name
           allget -= 1
           result_name_id[:pname] = body.unpack("A*")[0]
@@ -45,14 +44,34 @@ class PatientNameID
   end
 
   def body_size( fp, header )
-    if ["OB","OR","SQ","OW","UN"].include?( header[2] )
+    if ["OB","OF","OW","UN","UT"].include?( header[2] )
       fp.read(2)
       fp.read(4).unpack("L")[0]
-    elsif [].icnlude?( header[2] )
+    elsif ["AE","AS","AT","CS","DA","DS","DT","FL","FD","IS","LO","LT","OD","OL","OV","PN","SH","SL","SS","ST","SV","TM","UC","UI","UL","UR","US","UV"].include?( header[2] )
       fp.read(2).unpack("S")[0]
+    elsif ["SQ"].include?( header[2] )
+      fp.read(2)
+      size = fp.read(4)
+      if size.unpack("S2") != [0xFFFF,0xFFFF]
+        size.unpack("L")[0]
+      else
+        dum_read_SQ( fp )
+      end
     else
-      0
+      -1
     end
+  end
+
+  def dum_read_SQ( fp )
+    begin
+      val = fp.read(2)
+#      printf "** 0x%04X ", val.unpack("S")[0]
+      next if val.unpack("S") != [0xFFFE]
+      val2 = fp.read(2)
+#      printf "0x%04X\n", val2.unpack("S")[0]
+    end while val2.unpack("S") != [0xE0DD]
+    fp.read(4)
+    0
   end
 
   def idx(d_dir)
