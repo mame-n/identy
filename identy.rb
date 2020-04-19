@@ -2,25 +2,33 @@ require "./patient_name_id"
 
 class Identy
   def initialize(dcm_path="./DicomFiles")
-    puts "dcm_path 1 #{dcm_path}"
+    print "dcm_path #{dcm_path} -> "
     @dcm_path = File.expand_path(dcm_path)
-    puts "dcm_path 2 #{@dcm_path}"
+    puts "#{@dcm_path}"
   end
 
   def main
     keep_dir = Dir.pwd
-    @out_file = keep_dir+ARGV[2]
+    @out_file = keep_dir+"/dicom_info.txt"
+    puts "Output file #{@out_file}"
+
     Dir.chdir(@dcm_path)
     ret = dcm_dirs
     write_cvs(convert_cvs( ret ))
     Dir.chdir(keep_dir)
+    ret
   end
 
   def dcm_dirs
     Dir.glob("**/*").map do |file_path|
       unless File.directory?(file_path)
-        dcm = PatirntNameID.new("./" + file_path)
-        [idx(file_path), dcm[:pname], dcm[:pid], dcm[:study_date]]
+        puts "#{file_path}"
+        dcm = PatientNameID.new("./" + file_path).name_id
+        if dcm
+          [idx(file_path), dcm[:pname], dcm[:pid], dcm[:study_date]]
+        else
+          [idx(file_path),nil,nil,nil]
+        end          
       else
         [idx(file_path),nil,nil,nil]
       end

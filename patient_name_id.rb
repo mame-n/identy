@@ -4,30 +4,39 @@ class PatientNameID
   end
 
   def name_id
-    result_name_id = {}
+    file_name = @file_path.split("/")[-1]
+    result_name_id = {:fname=>file_name, :pname => nil, :pid => nil, :study_date => nil}
+    
+    return result_name_id if file_name == "DICOMDIR"
 
     open( @file_path, "rb" ) do |fp|
-      fp.read(128)
-      dicom_prefix = fp.read(4).unpack("a4")
-      if dicom_prefix[0] != "DICM"
-        return ;
-      end
+      dicom_prefix = fp.read(128+4)
+      break if dicom_prefix.size < 128+4
+      break if dicom_prefix.unpack("@128a4") != ["DICM"]
 
-      allget = 0
-      while allget < 3 && (data = fp.read(6)) != nil # Tag1, Tag2, VR, size
+      allget = 3
+      while allget > 0 && (data = fp.read(6)) != nil # Tag1, Tag2, VR, size
         header = data.unpack("S2A2")
-        body = fp.read( body_size( fp, header ) )
-        puts "header #{header} body #{body}"
+        break if body_size( fp, header ) == 0
+
+#        begin
+          body = fp.read( body_size( fp, header ) )
+#        rescue
+#          break
+#        end
+
+#        puts "header #{header} body #{body}"
         if header[0] == 0x0010 && header[1] == 0x0010 # Patient name
-          allget += 1
-          result_name_id[:pname] = body.unpack("A*")
+          allget -= 1
+          result_name_id[:pname] = body.unpack("A*")[0]
         elsif header[0] == 0x0010 && header[1] == 0x0020  # Patirnt ID
-          allget += 1
-          result_name_id[:pid] = body.unpack("A*")
+          allget -= 1
+          result_name_id[:pid] = body.unpack("A*")[0]
         elsif header[0] == 0x0008 && header[1] == 0x0020  # Study date
-          allget += 1
-          result_name_id[:study_date] = body.unpack("A*")
+          allget -= 1
+          result_name_id[:study_date] = body.unpack("A*")[0]
         else
+          #
         end
       end
     end
@@ -36,11 +45,18 @@ class PatientNameID
   end
 
   def body_size( fp, header )
-    if header[2] == "OB" || header[2] == "OR" || header[2] == "SQ" || header[2] == "OW" || header[2] == "UN"
+    if ["OB","OR","SQ","OW","UN"].include?( header[2] )
       fp.read(2)
       fp.read(4).unpack("L")[0]
-    else
+    elsif [].icnlude?( header[2] )
       fp.read(2).unpack("S")[0]
+    else
+      0
     end
   end
+
+  def idx(d_dir)
+    d_dir.split("/")[0]
+  end
+
 end
