@@ -10,7 +10,8 @@ class PatientNameID
     return result_name_id if file_name == "DICOMDIR"
 
     open( @file_path, "rb" ) do |fp|
-      dicom_prefix = fp.read(128+4)
+      break if (dicom_prefix = fp.read(128+4)) == nil
+      puts "Patient_name_id: 14 - @file_path : #{@file_path}, dcimo_prefic.size : #{dicom_prefix.size}"
       break if dicom_prefix.size < 128+4
       break if dicom_prefix.unpack("@128a4") != ["DICM"]
 

@@ -1,3 +1,4 @@
+#require "C:/Program Files (x86)/mybin/patient_name_id"
 require "./patient_name_id"
 
 class Identy
@@ -43,7 +44,7 @@ class Identy
   def convert_cvs(dcm_results)
     dcm_results.uniq!
 #    puts "Before #{dcm_results}"
-    dcm_results.inject([]) do |result_text, dcm_result|
+    dcm_results.inject(["Patient name,Patient ID,Study Date,DCM File name,DCM path"]) do |result_text, dcm_result|
 #      puts "result_text = #{result_text} : #{dcm_result}"
       if dcm_result[0] == nil  # PID is nil , so this file is not DICOM.
         result_text
